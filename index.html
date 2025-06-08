@@ -90,6 +90,21 @@
       </div>
     </section>
 
+    <!-- КОРЗИНА -->
+    <section id="cart" class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">Корзина</h2>
+      <div class="bg-white p-4 rounded shadow">
+        <ul id="cartList" class="space-y-2"></ul>
+        <div class="mt-4 text-right">
+          <strong>Общие бонусы за заказ:</strong> 
+          <span id="totalBonus" class="font-bold text-blue-600">0</span> 💎
+        </div>
+        <button id="checkoutBtn" class="mt-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors">
+          📦 Оформить заказ
+        </button>
+      </div>
+    </section>
+
     <!-- АКЦИИ -->
     <section id="offers" class="mb-6">
       <h2 class="text-lg font-semibold mb-2">Наши акции</h2>
@@ -293,6 +308,78 @@
       }
     }
 
+    // Корзина
+    let cart = [];
+
+    // Обновление корзины на странице
+    function updateCart() {
+      const cartList = document.getElementById('cartList');
+      const totalBonusEl = document.getElementById('totalBonus');
+      cartList.innerHTML = '';
+      let totalBonus = 0;
+
+      if (cart.length === 0) {
+        cartList.innerHTML = '<li class="text-gray-500 text-sm">Корзина пуста</li>';
+      } else {
+        cart.forEach(item => {
+          const bonusAmount = calculateBonuses(item.price);
+          totalBonus += bonusAmount;
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center bg-gray-100 p-2 rounded';
+          li.innerHTML = `
+            <span>${item.emoji} ${item.name}</span>
+            <span class="text-green-600">${item.price} ₽ (+${bonusAmount} 💎)</span>
+          `;
+          cartList.appendChild(li);
+        });
+      }
+
+      totalBonusEl.textContent = totalBonus;
+    }
+
+    // Добавление товара в корзину
+    function addToCart(index) {
+      const product = products[index];
+      cart.push(product);
+      updateCart();
+      showNotification(`✅ ${product.name} добавлено в корзину!`);
+    }
+
+    // Оформление заказа
+    function checkoutOrder() {
+      if (cart.length === 0) {
+        showNotification("❌ Корзина пуста!");
+        return;
+      }
+
+      let totalBonus = 0;
+      cart.forEach(product => {
+        const bonusAmount = calculateBonuses(product.price);
+        totalBonus += bonusAmount;
+      });
+
+      // Начисляем общие бонусы
+      bonusPoints += totalBonus;
+      purchaseCount += 1;
+
+      // Бонус за каждую 5-ю покупку
+      if (purchaseCount % 5 === 0) {
+        bonusPoints += 25;
+        showNotification(`🎉 Поздравляем! За 5-ю покупку вы получили дополнительно 25 бонусов!`);
+      }
+
+      saveUserData();
+      updateBonusDisplay();
+
+      // Очистка корзины
+      cart = [];
+      updateCart();
+
+      showNotification(`📦 Заказ оформлен!
+    Вы заработали ${totalBonus} бонусов 💎 за этот заказ!
+    Теперь у вас: ${bonusPoints} 💎`);
+    }
+
     // Уведомления
     function showNotification(message) {
       if (tg && tg.showAlert) {
@@ -317,6 +404,9 @@
         displayProducts(category);
       });
     });
+
+    // Привязка кнопки "Оформить заказ"
+    document.getElementById('checkoutBtn').addEventListener('click', checkoutOrder);
 
     // Инициализация приложения
     function initApp() {
