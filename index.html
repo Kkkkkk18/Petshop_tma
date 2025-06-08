@@ -85,6 +85,14 @@
         </button>
       </div>
 
+      <!-- Фильтр по товарам -->
+      <div class="mb-4">
+        <label for="productFilter" class="block text-sm font-medium text-gray-700 mb-1">Фильтр по товарам:</label>
+        <select id="productFilter" class="w-full p-2 border border-gray-300 rounded text-sm">
+          <option value="">Все товары</option>
+        </select>
+      </div>
+
       <!-- Сортировка -->
       <div class="mb-4">
         <label for="sortSelect" class="block text-sm font-medium text-gray-700 mb-1">Сортировать:</label>
@@ -193,6 +201,26 @@
       { name: 'Витамины для птиц', price: 280, category: 'birds', emoji: '💊' },
     ];
 
+    // Карта товаров для фильтрации
+    const productFilters = {
+      dogs: [
+        { name: 'Корм для собак (1кг)', emoji: '🐕' },
+        { name: 'Поводок кожаный', emoji: '🦮' },
+        { name: 'Корм премиум (5кг)', emoji: '🥘' }
+      ],
+      cats: [
+        { name: 'Лакомство для кошек', emoji: '🐱' },
+        { name: 'Игрушка мышка', emoji: '🐭' }
+      ],
+      birds: [
+        { name: 'Зерно для попугаев', emoji: '🦜' },
+        { name: 'Витамины для птиц', emoji: '💊' }
+      ],
+      rodents: [
+        { name: 'Клетка для хомяка', emoji: '🐹' }
+      ]
+    };
+
     let currentCategory = 'all';
     let bonusPoints = 0;
     let purchaseCount = 0;
@@ -262,19 +290,18 @@
     // Отображение товаров
     function displayProducts(category = 'all') {
       const productList = document.getElementById('productList');
+      const productFilter = document.getElementById('productFilter');
+      const selectedProductName = productFilter.value;
+
       productList.innerHTML = '';
 
-      // Фильтрация по категории
-      let filteredProducts = category === 'all' 
-        ? products 
+      let filteredProducts = category === 'all'
+        ? products
         : products.filter(p => p.category === category);
 
-      // Получаем значение селекта сортировки
-      const sortBy = document.getElementById('sortSelect').value;
-
-      // Сортировка
-      if (sortBy) {
-        filteredProducts = sortProducts(filteredProducts, sortBy);
+      // Если выбран конкретный товар — фильтруем по нему
+      if (selectedProductName) {
+        filteredProducts = filteredProducts.filter(p => p.name === selectedProductName);
       }
 
       // Вывод товаров
@@ -436,15 +463,28 @@
     // Обработчики событий
     document.getElementById('donateBtn').addEventListener('click', donateBonuses);
 
-    // Фильтрация по категориям
+    // Фильтрация по категориям + обновление фильтра по товарам
     document.querySelectorAll('.category-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const category = e.target.dataset.category;
-        
+
         // Обновляем активную кнопку
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('bg-blue-100'));
         e.target.classList.add('bg-blue-100');
-        
+
+        // Обновляем фильтр по товарам
+        const productFilter = document.getElementById('productFilter');
+        productFilter.innerHTML = '<option value="">Все товары</option>';
+
+        if (productFilters[category]) {
+          productFilters[category].forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.name;
+            option.textContent = `${item.emoji} ${item.name}`;
+            productFilter.appendChild(option);
+          });
+        }
+
         displayProducts(category);
       });
     });
@@ -464,6 +504,12 @@
 
     // Обработка выбора сортировки
     document.getElementById('sortSelect').addEventListener('change', function () {
+      const selectedCategory = document.querySelector('.category-btn.bg-blue-100')?.dataset?.category || 'all';
+      displayProducts(selectedCategory);
+    });
+
+    // Обработка выбора товара
+    document.getElementById('productFilter').addEventListener('change', function () {
       const selectedCategory = document.querySelector('.category-btn.bg-blue-100')?.dataset?.category || 'all';
       displayProducts(selectedCategory);
     });
