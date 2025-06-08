@@ -15,6 +15,7 @@
     <nav class="flex gap-4">
       <a href="#about" class="text-blue-600 hover:underline">О фирме</a>
       <a href="#catalog" class="text-blue-600 hover:underline">Каталог</a>
+      <a href="#cart" class="text-blue-600 hover:underline">Корзина</a>
       <a href="#offers" class="text-blue-600 hover:underline">Акции</a>
       <a href="#contacts" class="text-blue-600 hover:underline">Контакты</a>
     </nav>
@@ -82,6 +83,20 @@
         <button class="category-btn bg-white p-3 rounded shadow hover:bg-blue-50 transition-colors" data-category="rodents">
           🐹 Грызуны
         </button>
+      </div>
+
+      <!-- Сортировка -->
+      <div class="mb-4">
+        <label for="sortSelect" class="block text-sm font-medium text-gray-700 mb-1">Сортировать:</label>
+        <select id="sortSelect" class="w-full p-2 border border-gray-300 rounded text-sm">
+          <option value="">Выберите тип сортировки</option>
+          <option value="price_asc">По цене: от низкой к высокой</option>
+          <option value="price_desc">По цене: от высокой к низкой</option>
+          <option value="name_asc">По названию: А–Я</option>
+          <option value="name_desc">По названию: Я–А</option>
+          <option value="bonus_asc">По бонусам: от меньших к большим</option>
+          <option value="bonus_desc">По бонусам: от больших к меньшим</option>
+        </select>
       </div>
 
       <!-- Товары -->
@@ -181,6 +196,7 @@
     let currentCategory = 'all';
     let bonusPoints = 0;
     let purchaseCount = 0;
+    let cart = [];// Корзина
 
     // Функция расчета бонусов в зависимости от цены
     function calculateBonuses(price) {
@@ -248,15 +264,24 @@
       const productList = document.getElementById('productList');
       productList.innerHTML = '';
 
-      const filteredProducts = category === 'all' 
+      // Фильтрация по категории
+      let filteredProducts = category === 'all' 
         ? products 
         : products.filter(p => p.category === category);
 
+      // Получаем значение селекта сортировки
+      const sortBy = document.getElementById('sortSelect').value;
+
+      // Сортировка
+      if (sortBy) {
+        filteredProducts = sortProducts(filteredProducts, sortBy);
+      }
+
+      // Вывод товаров
       filteredProducts.forEach((product, i) => {
         const bonusAmount = calculateBonuses(product.price);
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded shadow hover:shadow-md transition-shadow';
-        
         card.innerHTML = `
           <div class="flex justify-between items-start mb-2">
             <h3 class="font-bold text-sm">${product.name}</h3>
@@ -274,6 +299,28 @@
         `;
         productList.appendChild(card);
       });
+    }
+
+    // Сортировка товаров
+    function sortProducts(productsToSort, sortBy) {
+      let sorted = [...productsToSort];
+
+      switch (sortBy) {
+        case 'price_asc':
+          return sorted.sort((a, b) => a.price - b.price);
+        case 'price_desc':
+          return sorted.sort((a, b) => b.price - a.price);
+        case 'name_asc':
+          return sorted.sort((a, b) => a.name.localeCompare(b.name));
+        case 'name_desc':
+          return sorted.sort((a, b) => b.name.localeCompare(a.name));
+        case 'bonus_asc':
+          return sorted.sort((a, b) => calculateBonuses(a.price) - calculateBonuses(b.price));
+        case 'bonus_desc':
+          return sorted.sort((a, b) => calculateBonuses(b.price) - calculateBonuses(a.price));
+        default:
+          return sorted;
+      }
     }
 
     // Покупка товара
@@ -307,9 +354,6 @@
         showNotification(`❌ Недостаточно баллов. Нужно минимум 50, у вас: ${bonusPoints}`);
       }
     }
-
-    // Корзина
-    let cart = [];
 
     // Обновление корзины на странице
     function updateCart() {
@@ -405,9 +449,25 @@
       });
     });
 
+        // Показывает информацию о пожертвовании
+    function showDonationInfo() {
+      const message = 'Вы жертвуете 50 рублей. Эти средства пойдут на помощь бездомным животным. Спасибо за вашу доброту!';
+      if (tg && tg.showAlert) {
+        tg.showAlert(message);
+      } else {
+        alert(message);
+      }
+    }
+
     // Привязка кнопки "Оформить заказ"
     document.getElementById('checkoutBtn').addEventListener('click', checkoutOrder);
 
+    // Обработка выбора сортировки
+    document.getElementById('sortSelect').addEventListener('change', function () {
+      const selectedCategory = document.querySelector('.category-btn.bg-blue-100')?.dataset?.category || 'all';
+      displayProducts(selectedCategory);
+    });
+    
     // Инициализация приложения
     function initApp() {
       loadUserData();
@@ -424,15 +484,7 @@
     } else {
       initApp();
     }
-   // Показывает информацию о пожертвовании
-function showDonationInfo() {
-  const message = 'Вы жертвуете 50 рублей. Эти средства пойдут на помощь бездомным животным. Спасибо за вашу доброту!';
-  if (tg && tg.showAlert) {
-    tg.showAlert(message);
-  } else {
-    alert(message);
-  }
-}
+   
   </script>
 </body>
 </html>
