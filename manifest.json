@@ -2,7 +2,7 @@
   "name": "Зоомагазин",
   "short_name": "Petshop",
   "description": "Мини-приложение Telegram для зоомагазина с бонусной системой и пожертвованиями.",
-  "start_url": "/index_1.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "theme_color": "#ffffff",
   "background_color": "#f9fafb",
