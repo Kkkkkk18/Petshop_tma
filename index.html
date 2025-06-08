@@ -132,6 +132,16 @@
             <option value="cash">Наличными при получении</option>
           </select>
         </div>
+        <!-- Вариант доставки -->
+        <div class="mt-4">
+          <label for="deliveryMethod" class="block text-sm font-medium text-gray-700 mb-1">Выберите способ доставки:</label>
+          <select id="deliveryMethod" class="w-full p-2 border border-gray-300 rounded text-sm">
+            <option value="">Выберите способ</option>
+            <option value="pickup">Самовывоз (бесплатно)</option>
+            <option value="courier">Курьерская доставка (300 ₽)</option>
+            <option value="mail">Почта России (500 ₽)</option>
+          </select>
+        </div>
         <button id="checkoutBtn" class="mt-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors">
           📦 Оформить заказ
         </button>
@@ -434,18 +444,48 @@
       }
 
       const paymentSelect = document.getElementById('paymentMethod');
+      const deliverySelect = document.getElementById('deliveryMethod');
       const selectedPayment = paymentSelect.value;
+      const selectedDelivery = deliverySelect.value;
 
       if (!selectedPayment) {
         showNotification("⚠️ Пожалуйста, выберите способ оплаты");
         return;
       }
+      
+      if (!selectedDelivery) {
+      showNotification("⚠️ Пожалуйста, выберите способ доставки");
+      return;
+      }
 
       let totalBonus = 0;
+      let totalPrice = 0;
+      
       cart.forEach(product => {
         const bonusAmount = calculateBonuses(product.price);
         totalBonus += bonusAmount;
+        totalPrice += product.price;
       });
+
+      // Стоимость доставки
+      let deliveryCost = 0;
+      let deliveryText = '';
+      switch (selectedDelivery) {
+        case 'pickup':
+          deliveryCost = 0;
+          deliveryText = '📦 Самовывоз (бесплатно)';
+          break;
+        case 'courier':
+          deliveryCost = 300;
+          deliveryText = '🚚 Курьерская доставка (300 ₽)';
+          break;
+        case 'mail':
+          deliveryCost = 500;
+          deliveryText = '📬 Почта России (500 ₽)';
+          break;
+      }
+
+      totalPrice += deliveryCost;
 
       // Начисляем общие бонусы
       bonusPoints += totalBonus;
