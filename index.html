@@ -122,6 +122,16 @@
           <strong>Общие бонусы за заказ:</strong> 
           <span id="totalBonus" class="font-bold text-blue-600">0</span> 💎
         </div>
+        <!-- Вариант оплаты -->
+        <div class="mt-4">
+          <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Выберите способ оплаты:</label>
+          <select id="paymentMethod" class="w-full p-2 border border-gray-300 rounded text-sm">
+            <option value="">Выберите способ</option>
+            <option value="card">Банковской картой</option>
+            <option value="sbp">Через СБП</option>
+            <option value="cash">Наличными при получении</option>
+          </select>
+        </div>
         <button id="checkoutBtn" class="mt-3 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors">
           📦 Оформить заказ
         </button>
@@ -423,6 +433,14 @@
         return;
       }
 
+      const paymentSelect = document.getElementById('paymentMethod');
+      const selectedPayment = paymentSelect.value;
+
+      if (!selectedPayment) {
+        showNotification("⚠️ Пожалуйста, выберите способ оплаты");
+        return;
+      }
+
       let totalBonus = 0;
       cart.forEach(product => {
         const bonusAmount = calculateBonuses(product.price);
@@ -446,9 +464,21 @@
       cart = [];
       updateCart();
 
-      showNotification(`📦 Заказ оформлен!
-    Вы заработали ${totalBonus} бонусов 💎 за этот заказ!
-    Теперь у вас: ${bonusPoints} 💎`);
+      // Отображение результата
+      let paymentText = '';
+      switch (selectedPayment) {
+        case 'card':
+          paymentText = '💳 Оплата банковской картой';
+          break;
+        case 'sbp':
+          paymentText = '📱 Оплата через СБП';
+          break;
+        case 'cash':
+          paymentText = '💵 Оплата наличными при получении';
+          break;
+      }
+
+      showNotification(`📦 Заказ оформлен!\n${paymentText}\n\nВы заработали ${totalBonus} бонусов 💎 за этот заказ!\nТеперь у вас: ${bonusPoints} 💎`);
     }
 
     // Уведомления
